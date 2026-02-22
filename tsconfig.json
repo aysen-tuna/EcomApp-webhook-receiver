@@ -3,9 +3,9 @@
       "target": "ES6",
       "module": "commonjs",
       "outDir": "./dist",
-      "moduleResolution": "node",
+      //"moduleResolution": "node",
       "esModuleInterop": true,
       "forceConsistentCasingInFileNames": true,
-      "ignoreDeprecations": "6.0"
+      // "ignoreDeprecations": "6.0"
   },
 }

@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "nodemon src/server.ts | npx pino-pretty",
     "start": "node dist/src/server.js | npx pino-pretty",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test-coverage": "jest --coverage",
     "debug-test": "jest --runInBand --detectOpenHandles",
     "debug-test-coverage": "jest --runInBand --detectOpenHandles --coverage",

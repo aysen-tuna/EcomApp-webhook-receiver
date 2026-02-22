@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import admin from 'firebase-admin';
 import { endpointSecret, stripe } from '../../../services/stripe';
 import { db } from '../../../services/firebase';
+import type Stripe from 'stripe';
 
 type CartItem = { productId: string; qty: number };
 
@@ -9,7 +10,7 @@ const receiveUpdates = async (req: Request, res: Response) => {
   const sigHeader = req.headers['stripe-signature'];
   const signature = Array.isArray(sigHeader) ? sigHeader[0] : sigHeader;
 
-  let event: any;
+  let event: Stripe.Event;
 
   try {
     if (!endpointSecret) {
@@ -18,14 +19,15 @@ const receiveUpdates = async (req: Request, res: Response) => {
     }
 
     event = stripe.webhooks.constructEvent(req.body, signature as string, endpointSecret);
-  } catch (err: any) {
-    console.log('Webhook signature verification failed:', err.message);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log('Webhook signature verification failed:', msg);
     return res.sendStatus(400);
   }
 
   try {
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as any;
+      const session = event.data.object as Stripe.Checkout.Session;
 
       const userId = session?.metadata?.userId ?? 'guest';
       const cartRaw = session?.metadata?.cart ?? '[]';
@@ -33,7 +35,8 @@ const receiveUpdates = async (req: Request, res: Response) => {
       let cart: CartItem[] = [];
       try {
         cart = JSON.parse(cartRaw);
-      } catch {
+      } catch (e) {
+        console.log('Cart parse failed');
         cart = [];
       }
 
