@@ -2,10 +2,12 @@
   "compilerOptions": {
       "target": "ES6",
       "module": "commonjs",
+      "rootDir": "./src",
       "outDir": "./dist",
       //"moduleResolution": "node",
       "esModuleInterop": true,
       "forceConsistentCasingInFileNames": true,
       // "ignoreDeprecations": "6.0"
   },
+   "include": ["src"]
 }
