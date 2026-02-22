@@ -8,4 +8,4 @@ bin/
 build
 build/Release
 
-*.md
+*n.md
