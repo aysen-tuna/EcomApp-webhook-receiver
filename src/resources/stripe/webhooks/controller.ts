@@ -6,6 +6,14 @@ import type Stripe from 'stripe';
 
 type CartItem = { productId: string; qty: number };
 
+type OrderItem = {
+  title: string;
+  qty: number;
+  unitAmount: number;
+  currency?: string;
+  imageUrl?: string;
+};
+
 const receiveUpdates = async (req: Request, res: Response) => {
   const sigHeader = req.headers['stripe-signature'];
   const signature = Array.isArray(sigHeader) ? sigHeader[0] : sigHeader;
@@ -59,12 +67,29 @@ const receiveUpdates = async (req: Request, res: Response) => {
         return res.status(200).send('ok');
       }
 
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+        expand: ['data.price.product'],
+      });
+
+      const items: OrderItem[] = lineItems.data.map((li) => {
+        const product = li.price?.product as Stripe.Product | null;
+
+        return {
+          title: product?.name ?? li.description ?? 'Product',
+          qty: li.quantity ?? 0,
+          unitAmount: li.price?.unit_amount ?? 0,
+          currency: li.currency ?? session.currency ?? 'eur',
+          imageUrl: product?.images?.[0] ?? '',
+        };
+      });
+
       await orderRef.set({
         status: 'complete',
         amountTotal: session.amount_total ?? 0,
         currency: session.currency ?? 'eur',
         stripeSessionId: session.id,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        items,
       });
 
       for (const item of cart) {
